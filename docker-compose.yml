@@ -1,0 +1,30 @@
+version: '3.5'
+
+services:
+  gunicorn:
+    container_name: django_rest
+    build:
+      context: ./adserver
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    restart: always
+    depends_on:
+      - postgres
+    links:
+      - postgres:postgres
+    networks:
+      backend:
+  postgres:
+    image: postgres:10
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 95adahor
+      POSTGRES_DB: adserver
+    ports:
+      - "5432"
+    restart: always
+    networks:
+      backend:
+networks:
+    backend:
