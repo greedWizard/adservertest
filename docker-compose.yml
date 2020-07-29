@@ -6,6 +6,11 @@ services:
     build:
       context: ./adserver
       dockerfile: Dockerfile
+    environment:
+      - ADSERVER_SECRET_KEY=${ADSERVER_SECRET_KEY}
+      - ADSERVER_DB_CONNECTION_NAME=${ADSERVER_DB_CONNECTION_NAME}
+      - ADSERVER_DB_CONNECTION_USER=${ADSERVER_DB_CONNECTION_USER}
+      - ADSERVER_DB_CONNECTION_PASSWORD=${ADSERVER_DB_CONNECTION_PASSWORD}
     ports:
       - "8000:8000"
     restart: always
@@ -18,13 +23,31 @@ services:
   postgres:
     image: postgres:10
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 95adahor
-      POSTGRES_DB: adserver
+      POSTGRES_USER: "${ADSERVER_DB_CONNECTION_USER}"
+      POSTGRES_PASSWORD: "${ADSERVER_DB_CONNECTION_PASSWORD}"
+      POSTGRES_DB: "${ADSERVER_DB_CONNECTION_NAME}"
     ports:
       - "5432"
     restart: always
+    volumes:
+      - db-data:/var/lib/postgresql/data
     networks:
       backend:
+        #  vue:
+        #    container_name: front
+        #    build:
+        #      context: ./adserver-vue
+        #      dockerfile: Dockerfile
+        #    ports:
+        #      - "8080:8080"
+        #    restart: always
+        #    networks:
+        #      frontend:
+        #    volumes:
+        #      - '.:/adserver-app'
+        #      - '/adserver-app/node_modules'
 networks:
     backend:
+    frontend:
+volumes:
+  db-data:

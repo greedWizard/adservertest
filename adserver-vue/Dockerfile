@@ -1,11 +1,17 @@
-FROM ubuntu:18.04
+FROM node:12.16.1
 
-RUN apt-get update && apt-get install -y gcc node.js npm
+RUN mkdir ./vue-app
 
-WORKDIR ./vue-app
+WORKDIR /vue-app
 
-ADD . /vue-app/
+ENV PATH /vue-app/node_modules/.bin:$PATH
 
-RUN npm install webpack-dev-server@2.9.7 --save-dev
+ADD package.json /app/package.json
 
-CMD npm run watch
+RUN npm config set registry http://registry.npmjs.org/ && npm install
+
+RUN npm install --save-dev webpack webpack-cli  && npm install webpack-dev-server -g && npm link webpack && npm link webpack-cli
+
+ADD . /vue-app
+
+CMD npm run dev

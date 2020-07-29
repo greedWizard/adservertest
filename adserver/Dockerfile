@@ -38,4 +38,4 @@ RUN pip3 install --upgrade pip
 RUN pip3 install -r requirements.txt
 
 EXPOSE 8000
-CMD gunicorn adserver.wsgi:application --bind 0.0.0.0:$PORT
+CMD gunicorn adserver.wsgi:application --bind 0.0.0.0:$PORT --workers 3 

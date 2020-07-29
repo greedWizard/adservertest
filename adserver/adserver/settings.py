@@ -20,7 +20,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '=q0=e+g3idf$&pomf6dhoyn1+(*vbe%v-efq6hge=#_0c&+%b0'
+SECRET_KEY = os.getenv('ADSERVER_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -92,11 +92,11 @@ WSGI_APPLICATION = 'adserver.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'adserver',
-        'USER': 'postgres',
+        'NAME': os.environ['ADSERVER_DB_CONNECTION_NAME'], # adserver for test
+        'USER': os.environ['ADSERVER_DB_CONNECTION_USER'], # postgres for test
         'HOST': 'postgres',
-        'PORT': 5432,
-        'PASSWORD': '95adahor',
+        'PORT': 5432, # default 5432
+        'PASSWORD': os.environ['ADSERVER_DB_CONNECTION_PASSWORD'],
     }
 }
 
