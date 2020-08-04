@@ -20,7 +20,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('ADSERVER_SECRET_KEY')
+SECRET_KEY = os.getenv("ADSERVER_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -45,12 +45,22 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'djoser',
     'django_filters',
+    'channels',
 
     'users',
     'board',
     'locations',
     'chat',
 ]
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('redis', 6379)],
+        },
+    },
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -97,7 +107,14 @@ DATABASES = {
         'HOST': 'postgres',
         'PORT': 5432, # default 5432
         'PASSWORD': os.environ['ADSERVER_DB_CONNECTION_PASSWORD'],
-    }
+    },
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.postgresql_psycopg2',
+    #     'NAME': 'adserver',
+    #     'USER': 'postgres',
+    #     'HOST': '127.0.0.1',
+    #     'PORT': 5433, # default 5432
+    # }
 }
 
 

@@ -36,32 +36,46 @@ export default {
   },
   created() {
     this.loadUser();
-    this.loadDialogue();
-    setInterval(this.loadDialogue, 1000);
+    this.connect();
   },
   data() {
     return {
       messages: '',
       dialogue: '',
       newMessage: '',
+      dialogueSocket: '',
     }
   },
   methods: {
-    loadDialogue() {
+    refreshMessages() {
       $.ajax({
         url: 'http://localhost:8000/api/chat/messages/',
         type: 'GET',
+        async: false,
         data: {
           dialogue: this.$route.params.dialogue_id,
         },
         success: (response) => {
             this.messages = response.data.info;
             this.dialogue = this.messages[0].dialogue;
+
+            console.log(this.dialogue);
         },
         error: (response) => {
-          
+          console.log(response);
         }
       });
+    },
+    connect() {
+      this.dialogueSocket = new WebSocket('ws://0.0.0.0:8000/ws/dialogue/'+this.$route.params.dialogue_id);
+
+      this.dialogueSocket.onopen = () => {
+        this.refreshMessages();
+        var refresh = this.refreshMessages;
+        this.dialogueSocket.onmessage = function retrieve(event) {
+          refresh();
+        }
+      };
     },
     sendMessage() {
       var recipient = -1;
@@ -73,21 +87,18 @@ export default {
         recipient = this.dialogue.seller.id;
       }
 
-      $.ajax({        
-        url: 'http://localhost:8000/api/chat/messages/',
-        type: 'POST',
-        data: {
-          dialogue: this.$route.params.dialogue_id,
-          text: this.newMessage,
-          recipient: recipient,
-        },
-        success: (resposne) => {
-          this.newMessage = '';
-        },
-        error: (response) => {
-          alert('Ошибка отправки сообщения');
+      var message_info = JSON.stringify(
+        {
+          'message': this.newMessage,
+          'sender_id': this.currentUser.id,
+          'recipient_id': recipient,
+          'dialogue_id': this.$route.params.dialogue_id,
         }
-      });
+      );
+
+      this.dialogueSocket.send(message_info);
+
+      this.newMessage = "";
     }
   },
   mixins: [

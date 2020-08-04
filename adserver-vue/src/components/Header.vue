@@ -45,8 +45,7 @@ export default {
   created(){
     this.loadUser();
     this.loadCategories();
-    this.loadNewMessages();
-    setInterval(this.loadNewMessages, 5000);
+    // setInterval(this.loadNewMessages, 5000);
   },
   methods: {
     goLogin() {

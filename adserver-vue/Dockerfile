@@ -14,4 +14,6 @@ RUN npm install --save-dev webpack webpack-cli  && npm install webpack-dev-serve
 
 ADD . /vue-app
 
+RUN npm install
+
 CMD npm run dev

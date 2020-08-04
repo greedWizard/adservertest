@@ -37,10 +37,12 @@ class Message(models.Model):
     read = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
-        if (self.sender.id != self.dialogue.seller.id and \
-            self.sender.id != self.dialogue.buyer.id) or \
-            (self.recipient.id != self.dialogue.seller.id and \
-            self.recipient.id != self.dialogue.buyer.id):
+        if (    
+                self.sender.id != self.dialogue.seller.id and \
+                self.sender.id != self.dialogue.buyer.id) or \
+                (self.recipient.id != self.dialogue.seller.id and \
+                self.recipient.id != self.dialogue.buyer.id
+            ):
             raise models.exceptions.ValidationError('Invalid users. Recipient/sender should be either buyer or sender.')
         
         super(Message, self).save(*args, **kwargs)

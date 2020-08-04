@@ -1,7 +1,7 @@
 version: '3.5'
 
 services:
-  gunicorn:
+  daphne:
     container_name: django_rest
     build:
       context: ./adserver
@@ -20,6 +20,10 @@ services:
       - postgres:postgres
     networks:
       backend:
+    volumes:
+      - django_data:/var/lib/adserver/data
+    depends_on:
+      - redis
   postgres:
     image: postgres:10
     environment:
@@ -33,21 +37,32 @@ services:
       - db-data:/var/lib/postgresql/data
     networks:
       backend:
-        #  vue:
-        #    container_name: front
-        #    build:
-        #      context: ./adserver-vue
-        #      dockerfile: Dockerfile
-        #    ports:
-        #      - "8080:8080"
-        #    restart: always
-        #    networks:
-        #      frontend:
-        #    volumes:
-        #      - '.:/adserver-app'
-        #      - '/adserver-app/node_modules'
+  vue:
+    container_name: front
+    build:
+      context: ./adserver-vue
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    restart: always
+    networks:
+      frontend:
+    volumes:
+      - '.:/adserver-app'
+      - '/adserver-app/node_modules'
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+    restart: always
+    networks:
+      backend:
+    volumes:
+      - '.:/redis_data'
 networks:
     backend:
     frontend:
 volumes:
   db-data:
+  django_data: 
