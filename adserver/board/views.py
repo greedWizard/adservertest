@@ -37,7 +37,14 @@ class Ads(APIView):
         page = 1
 
         if 'category' in get_data:
-            ads = ads.filter(category__id=get_data['category'])
+            #ads = ads.filter(category__id=get_data['category'])
+            categories = Category.objects.filter(id=get_data['category'])
+            family_arr = []
+            for category in categories:
+                family_arr.append(category.id)
+                for tree in category.get_descendants():
+                    family_arr.append(tree.id)
+            ads = ads.filter(category__id__in=family_arr).order_by('id')
         if 'page' in get_data:
             page = int(get_data['page'])
         if 'author' in get_data:

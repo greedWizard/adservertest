@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.contrib.postgres.fields import JSONField, ArrayField
 from rest_framework import serializers
-
+from mptt.models import MPTTModel, TreeForeignKey
 from locations.models import Adress
 
 from board.validators import DataValidator
@@ -20,9 +20,9 @@ class NecessaryField(models.Model):
         return f'{self.name} {self.type}'
 
 
-class Category(models.Model):
+class Category(MPTTModel):
     name = models.CharField(max_length=100)
-    parent = models.ForeignKey('self', on_delete=models.CASCADE, related_name='children', \
+    parent = models.TreeForeignKey('self', on_delete=models.CASCADE, related_name='children', \
         null=True, blank=True)
     necessary_fields = models.ManyToManyField(NecessaryField, related_name='categories', blank=True, null=True)
 
