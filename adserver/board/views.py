@@ -37,14 +37,8 @@ class Ads(APIView):
         page = 1
 
         if 'category' in get_data:
-            #ads = ads.filter(category__id=get_data['category'])
-            categories = Category.objects.filter(id=get_data['category'])
-            family_arr = []
-            for category in categories:
-                family_arr.append(category.id)
-                for tree in category.get_descendants():
-                    family_arr.append(tree.id)
-            ads = ads.filter(category__id__in=family_arr).order_by('id')
+            categories = Category.objects.get(id=get_data['category'])
+            ads = ads.filter(category__id__in=categories.get_descendants(include_self=True)).order_by('id')
         if 'page' in get_data:
             page = int(get_data['page'])
         if 'author' in get_data:
@@ -140,13 +134,11 @@ class AdView(APIView):
 
 class Categories(APIView):
     def get(self, request):
-        categories = Category.objects.all().order_by('name')
+        categories = Category.objects.filter(parent = None).order_by('id')
         categs = []
 
-        for category in categories.all():
-            if len(category.children.all()) > 0:
-                categs.append(category)
-                categs.extend(category.children.order_by('name').all())
+        for category in categories:
+            categs.extend(category.get_descendants(include_self=True))
 
         categories = categs
         serializer = CategorySerializer(categories, many=True)
