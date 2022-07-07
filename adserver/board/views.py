@@ -1,6 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-
+from rest_framework import generics
+from django_filters import rest_framework as filters
 from rest_framework.exceptions import PermissionDenied
 
 from django.http import Http404, HttpResponseForbidden, HttpResponseBadRequest
@@ -12,7 +13,8 @@ from board.serializers import (
                                 UserAdSerializer, CreateAdSerializer, 
                             )
 from board.models import Ad, Category
-
+from board.filters import ProductFilter
+from board.pagination import Pagination_Ads
 from rest_framework.permissions import IsAuthenticated
 
 
@@ -29,57 +31,25 @@ class UserAds(APIView):
         return Response({'info': serializer.data})
 
 
-class Ads(APIView):
-    def get(self, request):
-        get_data = request.query_params
+class Ads(generics.ListCreateAPIView):
+    queryset = Ad.objects.all().order_by('-date')
+    serializer_class = AdSerializer
+    pagination_class = Pagination_Ads
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = ProductFilter
+    permission_classes = [IsAuthenticated,]
 
-        ads = Ad.objects.all().order_by('-date')
-        page = 1
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+               
+        page = self.paginate_queryset(queryset)
+        count = len(page)
+        if page is not None:
+            serializer = AdSerializer(page, many=True)
+            return Response({'count': count, 'info': serializer.data})
 
-        if 'category' in get_data:
-            categories = Category.objects.get(id=get_data['category'])
-            ads = ads.filter(category__id__in=categories.get_descendants(include_self=True)).order_by('id')
-        if 'page' in get_data:
-            page = int(get_data['page'])
-        if 'author' in get_data:
-            ads = ads.filter(author__id=get_data['author'])
-        if 'title' in get_data:
-            ads = ads.filter(title__icontains=get_data['title'])
-        if 'min_price' in get_data:
-            ads = ads.filter(price__gte=get_data['min_price'])
-        if 'max_price' in get_data:
-            ads = ads.filter(price__lte=get_data['max_price'])
-        if 'region' in get_data:
-            regions = []
-            try: 
-                regions = [int(_) for _ in (get_data['region'].split(','))]
-            except ValueError:
-                pass
-
-            ads = ads.filter(adress__region__id__in=regions)
-        if 'city' in get_data:
-            cities = []
-            try: 
-                cities = [int(_) for _ in (get_data['city'].split(','))]
-            except ValueError:
-                pass
-
-            ads = ads.filter(adress__region__city__id__in=cities)
-        if 'state' in get_data:
-            states = []
-            try: 
-                states = [int(_) for _ in (get_data['state'].split(','))]
-            except ValueError:
-                pass
-
-            ads = ads.filter(adress__region__city__state__id__in=states)
-
-        paginator = Paginator(ads, 7)
-        count = len(ads.all())
-        ads = paginator.get_page(page)
-
-        serializer = AdSerializer(ads.object_list, many=True)
-
+        count = len(queryset)
+        serializer = AdSerializer(queryset, many=True)
         return Response({'count': count, 'info': serializer.data})
 
     def post(self, request):
