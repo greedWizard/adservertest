@@ -14,7 +14,7 @@ from board.serializers import (
                             )
 from board.models import Ad, Category
 from board.filters import ProductFilter
-from board.pagination import Pagination_Ads
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 
 
@@ -34,7 +34,8 @@ class UserAds(APIView):
 class Ads(generics.ListCreateAPIView):
     queryset = Ad.objects.all().order_by('-date')
     serializer_class = AdSerializer
-    pagination_class = Pagination_Ads
+    pagination_class = PageNumberPagination
+    page_size = 10
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = ProductFilter
     permission_classes = [IsAuthenticated,]
