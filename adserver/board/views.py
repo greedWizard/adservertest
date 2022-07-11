@@ -44,14 +44,13 @@ class Ads(generics.ListCreateAPIView):
         queryset = self.filter_queryset(self.get_queryset())
                
         page = self.paginate_queryset(queryset)
-        count = len(page)
         if page is not None:
             serializer = AdSerializer(page, many=True)
-            return Response({'count': count, 'info': serializer.data})
+            return self.get_paginated_response({'info': serializer.data})
 
-        count = len(queryset)
+
         serializer = AdSerializer(queryset, many=True)
-        return Response({'count': count, 'info': serializer.data})
+        return Response({'info': serializer.data})
 
     def post(self, request):
         serializer = CreateAdSerializer(data=request.data, partial=True)
@@ -105,7 +104,7 @@ class AdView(APIView):
 
 class Categories(APIView):
     def get(self, request):
-        categories = Category.objects.filter(parent = None).order_by('id')
+        categories = Category.objects.filter(parent = None).order_by('name')
         categs = []
 
         for category in categories:

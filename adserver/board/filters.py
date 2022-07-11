@@ -23,9 +23,9 @@ class ProductFilter(filters.FilterSet):
 
     def filter_category(self, queryset, field_name, value):
         try:
-            categories = Category.objects.get(id=value)
-            value = categories.get_descendants(include_self=True)
-            return queryset.filter(**{field_name: value}).select_related('category')
+            value = Category.objects.get(id=value).get_descendants(include_self=True)
         except Category.DoesNotExist:
-            return  queryset.filter(**{field_name: []}).select_related('category')
+            value = []
+
+        return queryset.filter(**{field_name: value}).select_related('category')
         
