@@ -51,6 +51,8 @@ INSTALLED_APPS = [
     'board',
     'locations',
     'chat',
+
+    'mptt', #Древовидная структура
 ]
 
 CHANNEL_LAYERS = {
