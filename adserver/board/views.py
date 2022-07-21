@@ -1,3 +1,5 @@
+from django.core.cache import cache
+from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import generics
@@ -30,6 +32,20 @@ class UserAds(APIView):
 
         return Response({'info': serializer.data})
 
+class SearchHistory(APIView):
+
+    def get(self, request):
+        search_user = cache.get(f'{request.user}')
+        if search_user is None:
+            return Response({'error': 'Вы пока не сохранили ни одного поискового запроса'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'info': search_user})
+
+    def delete(self, request):
+        try:
+            cache.delete(f'{request.user}')
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except:
+            return Response({'error': 'Ошибка удаления'}, status=status.HTTP_400_BAD_REQUEST) 
 
 class Ads(generics.ListCreateAPIView):
     queryset = Ad.objects.all().order_by('-date')
@@ -41,6 +57,15 @@ class Ads(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated,]
 
     def list(self, request, *args, **kwargs):
+        params = request.query_params.dict().copy()
+        search_user = cache.get(f'{request.user}')
+        if search_user is None:
+            cache.set(f'{request.user}', [params], timeout=None)
+        else:
+            if params not in search_user:
+                search_user.insert(0, params)
+                cache.set(f'{request.user}',  search_user, timeout=None)
+
         queryset = self.filter_queryset(self.get_queryset())
                
         page = self.paginate_queryset(queryset)
