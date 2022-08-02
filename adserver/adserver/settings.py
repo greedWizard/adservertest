@@ -64,6 +64,17 @@ CHANNEL_LAYERS = {
     },
 }
 
+# Для кэша поиска пользоватлей
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -152,6 +163,7 @@ USE_L10N = True
 
 USE_TZ = True
 
+SEARCH_HISTORY_TEMPLATE = 'search_history#{user_id}'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/

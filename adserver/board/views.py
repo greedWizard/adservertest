@@ -1,6 +1,9 @@
+from django.core.cache import cache
+
+from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import generics
+from rest_framework import generics, status
 from django_filters import rest_framework as filters
 from rest_framework.exceptions import PermissionDenied
 
@@ -30,6 +33,22 @@ class UserAds(APIView):
 
         return Response({'info': serializer.data})
 
+class SearchHistory(APIView):
+
+    def get(self, request):
+        search_history_cache_key = settings.SEARCH_HISTORY_TEMPLATE.format(user_id=request.user.id)
+        search_history_cache = cache.get(search_history_cache_key)
+        if search_history_cache is None:
+            return Response({'error': 'Вы пока не сохранили ни одного поискового запроса'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'info': search_history_cache})
+
+    def delete(self, request):
+        try:
+            search_history_cache_key = settings.SEARCH_HISTORY_TEMPLATE.format(user_id=request.user.id)
+            cache.delete(search_history_cache_key)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except:
+            return Response({'error': 'Ошибка удаления'}, status=status.HTTP_400_BAD_REQUEST)  
 
 class Ads(generics.ListCreateAPIView):
     queryset = Ad.objects.all().order_by('-date')
@@ -41,6 +60,17 @@ class Ads(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated,]
 
     def list(self, request, *args, **kwargs):
+        params = request.query_params.dict().copy()
+        search_history_cache_key = settings.SEARCH_HISTORY_TEMPLATE.format(user_id=request.user.id)
+        user_search_cache = cache.get(search_history_cache_key)
+        if params != {}:
+            if user_search_cache is None:
+                cache.set(search_history_cache_key, [params], timeout=None)
+            else:
+                if params not in user_search_cache:
+                    user_search_cache.insert(0, params)
+                    cache.set(search_history_cache_key,  user_search_cache, timeout=None)
+
         queryset = self.filter_queryset(self.get_queryset())
                
         page = self.paginate_queryset(queryset)
