@@ -12,10 +12,10 @@ from django.core.paginator import Paginator
 from django.contrib.auth.models import User
 
 from board.serializers import ( 
-                                AdSerializer, CategorySerializer, 
-                                UserAdSerializer, CreateAdSerializer, 
+                                AdSerializer, CategorySerializer, CreateFavoriteAdsSerializer, CreateFavoriteSellersSerializer, TagsSerializer,
+                                UserAdSerializer, CreateAdSerializer, FavoriteAdsSerializer, FavoriteSellersSerializer, Tags
                             )
-from board.models import Ad, Category
+from board.models import Ad, Category, Tags, FavoriteAd, FavoriteSeller
 from board.filters import ProductFilter
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
@@ -26,12 +26,72 @@ class UserAds(APIView):
         try:
             user = User.objects.get(pk=user_id)
         except User.DoesNotExist:
-            raise Http404('Данного пользователя не существуе')
+            raise Http404('Данного пользователя не существует')
 
         ads = user.ads
         serializer = AdSerializer(ads, many=True)
 
         return Response({'info': serializer.data})
+
+
+class TagsView(generics.ListAPIView):
+    queryset = Tags.objects.all()
+    serializer_class = TagsSerializer
+    permission_classes = [IsAuthenticated,]
+        
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = TagsSerializer(queryset, many=True)
+        return Response({'info': serializer.data})
+
+
+class FavoriteSellersView(generics.ListCreateAPIView):
+    queryset = FavoriteSeller.objects.all()
+    pagination_class = PageNumberPagination
+    page_size = 10
+    serializer_class = FavoriteSellersSerializer
+    permission_classes = [IsAuthenticated,]
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset().filter(owner=self.request.user)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = FavoriteSellersSerializer(page, many=True)
+            return self.get_paginated_response({'info': serializer.data})
+        serializer = FavoriteSellersSerializer(queryset, many=True)
+        return Response({'info': serializer.data})
+
+    def post(self, request):
+        serializer = CreateFavoriteSellersSerializer(data=request.data, partial=True)
+        if serializer.is_valid():
+            favorite_seller = serializer.save(request.user)
+            return Response({'info': favorite_seller})
+        return Response({'error': serializer.errors})
+
+
+class FavoriteAdsView(generics.ListCreateAPIView):
+    queryset = FavoriteAd.objects.all()
+    pagination_class = PageNumberPagination
+    page_size = 10
+    serializer_class = FavoriteAdsSerializer
+    permission_classes = [IsAuthenticated,]
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset().filter(owner=self.request.user)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = FavoriteAdsSerializer(page, many=True)
+            return self.get_paginated_response({'info': serializer.data})
+        serializer = FavoriteAdsSerializer(queryset, many=True)
+        return Response({'info': serializer.data})
+
+    def post(self, request):
+        serializer = CreateFavoriteAdsSerializer(data=request.data, partial=True)
+        if serializer.is_valid():
+            favorite_ad = serializer.save(request.user)
+            return Response({'info': favorite_ad})
+        return Response({'error': serializer.errors})
+
 
 class SearchHistory(APIView):
 

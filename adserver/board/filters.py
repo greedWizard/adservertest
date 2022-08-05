@@ -15,11 +15,11 @@ class ProductFilter(filters.FilterSet):
     city = NumberInFilter(field_name="adress__region__city__id", lookup_expr='in')
     region = NumberInFilter(field_name="adress__region__id", lookup_expr='in')
     category = filters.NumberFilter(field_name='category__id__in', method='filter_category')
-
+    tags = NumberInFilter(field_name="tags__id", lookup_expr='in')
  
     class Meta:
         model = Ad
-        fields = ('author', 'title', 'price', 'category','state', 'city', 'region')
+        fields = ('author', 'title', 'price', 'category','state', 'city', 'region', 'tags')
 
     def filter_category(self, queryset, field_name, value):
         try:

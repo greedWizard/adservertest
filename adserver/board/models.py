@@ -22,10 +22,17 @@ class NecessaryField(models.Model):
 
 class Category(MPTTModel):
     name = models.CharField(max_length=100)
-    parent = models.TreeForeignKey('self', on_delete=models.CASCADE, related_name='children', \
+    parent = TreeForeignKey('self', on_delete=models.CASCADE, related_name='children', \
         null=True, blank=True)
     necessary_fields = models.ManyToManyField(NecessaryField, related_name='categories', blank=True, null=True)
 
+    def __str__(self):
+        return f'{self.name}'
+
+
+class Tags(models.Model):    
+    name = models.CharField(max_length=150,  verbose_name='Name Tag', blank=True, null=True)
+    
     def __str__(self):
         return f'{self.name}'
 
@@ -53,6 +60,22 @@ class Ad(models.Model):
             if not field.name in keys:
                 raise serializers.ValidationError('Не все необходимые поля заданы')
         super(Ad, self).save(*args, **kwargs)
+
+
+class FavoriteAd(models.Model):
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='owner_favorite_ads')
+    favorite_ads =  models.ManyToManyField(Ad, related_name='favorite_ads')
+    
+    def __str__(self):
+        return f'{self.id} - {self.owner}'
+
+
+class FavoriteSeller(models.Model):
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='owner_favorite_seller')
+    favorite_sellers =  models.ManyToManyField(User, related_name='favorite_sellers')
+    
+    def __str__(self):
+        return f'{self.id} - {self.owner}'
 
 
 class Image(models.Model):

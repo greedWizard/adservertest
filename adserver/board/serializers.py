@@ -1,10 +1,9 @@
 from rest_framework import serializers
 
 from users.serializers import UserSerializer
-from board.models import Ad, Category, Image, NecessaryField
+from board.models import Ad, Category, Image, Tags, NecessaryField, FavoriteAd, FavoriteSeller
 from locations.serializers import CountrySerializer, CitySerializer, AdressSerializer
 from locations.models import Region, Adress
-
 from datetime import datetime
 
 
@@ -19,6 +18,11 @@ class SubCategorySerializer(serializers.ModelSerializer):
         model = Category
         fields = ('id', 'name', )
 
+
+class TagsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tags
+        fields = ('id', 'name')
 
 class NecessaryFieldSerializer(serializers.ModelSerializer):
     class Meta:
@@ -40,11 +44,12 @@ class UserAdSerializer(serializers.ModelSerializer):
     author = UserSerializer()
     category = SubCategorySerializer()
     adress = AdressSerializer()
+    tags = TagsSerializer(many=True)
     images = ImageSerializer(many=True)
 
     class Meta:
         model = Ad
-        fields = fields = ('id', 'title', 'category', 'desc', 'price', 'date', 'images')
+        fields = fields = ('id', 'title', 'category', 'desc', 'price', 'date', 'tags', 'images')
 
 
 class CreateAdSerializer(serializers.ModelSerializer):
@@ -59,7 +64,7 @@ class CreateAdSerializer(serializers.ModelSerializer):
         model = Ad
         fields = (
             'price', 'title', 'category', 'desc', 'price', 'date', 'imgs', \
-            'category', 'region', 'street', 'house', 'data', \
+            'category', 'region', 'street', 'house', 'data', 'tags' \
         )
 
     def save(self, author):
@@ -77,6 +82,10 @@ class CreateAdSerializer(serializers.ModelSerializer):
                 )
             new_adress.save()
             new_ad.adress = new_adress
+            new_ad.save()
+            
+            tags = [tag.id for tag in self.validated_data['tags']]
+            new_ad.tags.set(tags)
             new_ad.save()
 
             for img in self.validated_data['imgs']:
@@ -125,19 +134,70 @@ class CreateAdSerializer(serializers.ModelSerializer):
 
 
 class SubAdSerializer(serializers.ModelSerializer):
+    tags = TagsSerializer(many=True)
     images = ImageSerializer(many=True)
 
     class Meta:
         model = Ad
-        fields = ('id', 'title', 'price', 'images')
+        fields = ('id', 'title', 'price', 'tags', 'images')
 
 
 class AdSerializer(serializers.ModelSerializer):
     author = UserSerializer()
     category = CategorySerializer()
     adress = AdressSerializer()
+    tags = TagsSerializer(many=True)
     images = ImageSerializer(many=True)
     
     class Meta:
         model = Ad
-        fields = ('id', 'title', 'category', 'desc', 'price', 'date', 'author', 'adress', 'data', 'images')
+        fields = ('id', 'title', 'category', 'desc', 'price', 'date', 'author', 'adress', 'data', 'tags', 'images')
+
+
+class CreateFavoriteAdsSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = FavoriteAd
+        fields = ('id','favorite_ads',)
+
+    def save(self, owner):
+        favorite_ads = [favorite_ad.id for favorite_ad in self.validated_data['favorite_ads']]
+        try:
+            favorite_ads_qs = FavoriteAd.objects.get(owner=owner, favorite_ads__in=favorite_ads)
+            favorite_ads_qs.delete()
+            return f"Объявление/-я удалено/-ы из избранных"
+        except FavoriteAd.DoesNotExist:
+            new_favorite_ad = FavoriteAd.objects.create(owner=owner)
+            new_favorite_ad.favorite_ads.set(favorite_ads)
+            return f"Объявление/-я добавлено/-ы в избранное"
+
+class FavoriteAdsSerializer(serializers.ModelSerializer):
+    favorite_ads = AdSerializer(many=True)
+
+    class Meta:
+        model = FavoriteAd
+        fields = ('id','favorite_ads',)
+
+class CreateFavoriteSellersSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = FavoriteSeller
+        fields = ('id','favorite_sellers',)
+
+    def save(self, owner):
+        favorite_sellers = [favorite_sellers.id for favorite_sellers in self.validated_data['favorite_sellers']]
+        try:
+            favorite_sellers_qs = FavoriteSeller.objects.get(owner=owner, favorite_sellers__in=favorite_sellers)
+            favorite_sellers_qs.delete()
+            return f"Продавец/-ы удалён/-ы из избранных"
+        except FavoriteSeller.DoesNotExist:
+            new_favorite_ad = FavoriteSeller.objects.create(owner=owner)
+            new_favorite_ad.favorite_sellers.set(favorite_sellers)
+            return f"Продавец/-ы добавлен/-ы в избранное"
+
+class FavoriteSellersSerializer(serializers.ModelSerializer):
+    favorite_sellers = UserSerializer(many=True)
+
+    class Meta:
+        model = FavoriteSeller
+        fields = ('id','favorite_sellers',)
