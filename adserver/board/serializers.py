@@ -3,7 +3,7 @@ from rest_framework import serializers
 from users.serializers import UserSerializer
 from board.models import Ad, Category, Image, Tags, NecessaryField, FavoriteAd, FavoriteSeller
 from locations.serializers import CountrySerializer, CitySerializer, AdressSerializer
-from locations.models import Region, Adress
+from locations.models import Region, Adress, Subway
 from datetime import datetime
 
 
@@ -54,6 +54,7 @@ class UserAdSerializer(serializers.ModelSerializer):
 
 class CreateAdSerializer(serializers.ModelSerializer):
     category = serializers.IntegerField()
+    subway = serializers.IntegerField()
     region = serializers.IntegerField()
     street = serializers.CharField()
     house = serializers.CharField()
@@ -64,7 +65,7 @@ class CreateAdSerializer(serializers.ModelSerializer):
         model = Ad
         fields = (
             'price', 'title', 'category', 'desc', 'price', 'date', 'imgs', \
-            'category', 'region', 'street', 'house', 'data', 'tags' \
+            'category', 'region', 'street', 'house', 'data', 'tags', 'subway' \
         )
 
     def save(self, author):
@@ -76,8 +77,8 @@ class CreateAdSerializer(serializers.ModelSerializer):
         )
 
         try:
-            region = Region.objects.get(pk=self.validated_data['region'])
-            new_adress = Adress(region=region, house=self.validated_data.get('house', None), \
+            region, subway = Region.objects.get(pk=self.validated_data['region']), Subway.objects.get(pk=self.validated_data['region'])
+            new_adress = Adress(region=region, subway=subway, house=self.validated_data.get('house', None), \
                     street=self.validated_data.get('street', None) \
                 )
             new_adress.save()
@@ -102,6 +103,8 @@ class CreateAdSerializer(serializers.ModelSerializer):
         try:
             if 'region' in self.validated_data:
                 ad.adress.region = Region.objects.get(pk=self.validated_data['region'])
+            if 'subway' in self.validated_data:
+                ad.adress.subway = Subway.objects.get(pk=self.validated_data['subway'])
             if 'street' in self.validated_data:
                 ad.adress.street = self.validated_data['street']
             if 'house' in self.validated_data:

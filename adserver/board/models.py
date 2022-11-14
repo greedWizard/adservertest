@@ -48,6 +48,7 @@ class Ad(models.Model):
         related_name='ad')
 
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='ads')
+    tags = models.ManyToManyField(Tags, related_name='tags', blank=True, null=True)
     data = JSONField(default=dict)
 
     def __str__(self):
