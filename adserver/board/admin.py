@@ -1,12 +1,12 @@
 from django.contrib import admin
+from mptt.admin import MPTTModelAdmin
+from .models import Ad, Category, Image, Tags, NecessaryField, FavoriteAd, FavoriteSeller
 
-from locations.models import Country, City, Adress, State, Region, IP_City, Subway
 
-
-admin.site.register(Country)
-admin.site.register(City)
-admin.site.register(Adress)
-admin.site.register(Region)
-admin.site.register(Subway)
-admin.site.register(State)
-admin.site.register(IP_City)
+admin.site.register(Ad)
+admin.site.register(Category, MPTTModelAdmin)
+admin.site.register(Image)
+admin.site.register(Tags)
+admin.site.register(NecessaryField)
+admin.site.register(FavoriteAd)
+admin.site.register(FavoriteSeller)
