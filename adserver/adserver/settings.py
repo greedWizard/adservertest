@@ -164,6 +164,9 @@ USE_L10N = True
 USE_TZ = True
 
 SEARCH_HISTORY_TEMPLATE = 'search_history#{user_id}'
+PARSER_SITE_CITY_RF = 'https://kocherov.net/russia/'
+IP_RU_STATES = 'https://suip.biz/ru/'
+IP_GEO_RU = 'http://blog.ivru.net/geo/'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/

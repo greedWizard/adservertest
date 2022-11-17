@@ -1,9 +1,11 @@
+from ipaddress import ip_address
 from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
-
-from locations.models import Country, State, City, Region
-from locations.serializers import CountrySerializer, StateSerializer, CitySerializer, RegionSerializer
+from rest_framework import status
+from translate import Translator
+from locations.models import Country, State, City, Region, Subway, IP_City
+from locations.serializers import CountrySerializer, StateSerializer, CitySerializer, RegionSerializer, SubwaySerializer, IPSerializer
 
 
 class Countries(APIView):
@@ -58,3 +60,30 @@ class Regions(APIView):
         serializer = RegionSerializer(regions, many=True)
 
         return Response({'info': serializer.data})
+
+class Subways(APIView):
+    def get(self, request):
+        get_data = request.query_params
+
+        subways = Subway.objects.filter(city_id=get_data['city_id'])
+
+        try:
+            subways  = subways.filter(name=get_data['name'])
+        except:
+            pass
+
+        serializer = SubwaySerializer(subways, many=True)
+
+        return Response({'info': serializer.data})
+
+
+class IpData(APIView):
+    def get(self, request):
+        get_data = request.query_params
+        city_ru = Translator(to_lang="ru").translate(get_data['city'])
+        try:
+            city = City.objects.get(name=city_ru)
+            serializer = CitySerializer(city)
+            return Response({'info': serializer.data})
+        except City.DoesNotExist:
+            return Response({'error': 'Не удалось определить город автоматически!'}, status=status.HTTP_400_BAD_REQUEST)

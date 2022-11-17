@@ -37,9 +37,24 @@ class Region(models.Model):
     def __str__(self):
         return f'{self.city.name}, {self.name}'
 
+class Subway(models.Model):
+    name = models.CharField(max_length=200, unique=True)
+    city = models.ForeignKey(City, on_delete=models.CASCADE, related_name='subways_cities')
+
+    def __str__(self):
+        return f'{self.city.name}, {self.name}'
+
+class IP_City(models.Model):
+    minip = models.CharField(max_length=200)
+    maxip = models.CharField(max_length=200)
+    city = models.ForeignKey(City, on_delete=models.CASCADE, related_name='ip_cities')
+
+    def __str__(self):
+        return f'{self.city.name}, {self.minip}-{self.maxip}'
 
 class Adress(models.Model):
     region = models.ForeignKey(Region, on_delete=models.CASCADE, related_name='adresses')
+    subway = models.ForeignKey(Subway, on_delete=models.CASCADE, blank=True, null=True, related_name='subwayses')
     street = models.CharField(max_length=200, blank=True, null=True)
     house = models.CharField(max_length=20, blank=True, null=True)
 

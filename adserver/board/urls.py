@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import Ads, Categories, AdView, CategoryAdsView, UserAds, SearchHistory
+from .views import Categories, AdView, CategoryAdsView, UserAds, Ads, SearchHistory, FavoriteAdsView, FavoriteSellersView, TagsView
 
 
 urlpatterns = [
@@ -10,4 +10,7 @@ urlpatterns = [
     path('categories/', Categories.as_view()),
     path('categories/<int:id>', CategoryAdsView.as_view()),
     path('history/', SearchHistory.as_view()),
+    path('tags/', TagsView.as_view()),
+    path('favorite_sellers/', FavoriteSellersView.as_view()),
+    path('favorite_ads/', FavoriteAdsView.as_view()),
 ]

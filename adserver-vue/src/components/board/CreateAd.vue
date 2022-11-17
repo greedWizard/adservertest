@@ -40,6 +40,10 @@
        * <select v-model="newRegion">
          <option disabled selected>Район</option>
          <option v-for="region in this.regions" v-bind:key="region" v-bind:value="region.id"> {{ region.name }} </option>
+       </select>
+       * <select v-model="newSubway">
+         <option disabled selected>Метро</option>
+         <option v-for="subway in this.subways" v-bind:key="subway" v-bind:value="subway.id"> {{ subway.name }} </option>
        </select> <br> <br>
        <a>Улица: <input v-model="street" placeholder="Улица"> </a>
        <a>Дом: <input v-model="house" placeholder="Номер дома"></a>
@@ -55,7 +59,7 @@
 import Header from '../Header'
 import User from '../../mixins/User'
 import AdsUtils from '../../mixins/AdsUtils'
-
+import {getGeo} from 'geoplugin'
 import $ from 'jquery'
 
 export default {
@@ -65,6 +69,7 @@ export default {
       productImages: [],
       newState: 'Область',
       newRegion: 'Район',
+      newSubway: 'Метро',
       newCity: 'Город',
       cities: [],
       desc: '',
@@ -72,8 +77,10 @@ export default {
       countries: undefined,
       states: undefined,
       regions: undefined,
+      subways: undefined,
       cities: undefined,
       categories: [],
+      ip_user: undefined,
       newCategory: 'Категория',
       street: '',
       house: '',
@@ -87,6 +94,10 @@ export default {
       this.loadUser();
       this.loadStates();
       this.loadCategories();
+      getGeo()
+        .then((response) => { this.loadIpData(response.city); console.log(response) }) // handle success
+        .catch(error => console.log(error)) // handle error
+      console.log(this.ip_user)
   },
   components: {
       'header-info': Header,
@@ -143,9 +154,34 @@ export default {
         type: 'GET',
         success: (response) => {
           this.regions = response.data.info;
+          this.loadSubways();
         },
         error: (response) => {
-
+        }
+      });
+    },
+    loadSubways()
+    {
+      $.ajax({
+        url: 'http://localhost:8000/api/locations/subways/?city_id=' + this.newCity,
+        type: 'GET',
+        success: (response) => {
+          this.subways = response.data.info;
+        },
+        error: (response) => {
+        }
+      });
+    },
+    loadIpData(city){
+      $.ajax({
+        url: 'http://localhost:8000/api/locations/ip_data/?city=' + 'bb',
+        type: 'GET',
+        success: (response) => {
+          console.log(response.data.info);
+          alert('Ваш город ' + response.data.info.name + '?')
+        },
+        error: (response) => {
+          alert('Ошибка')
         }
       });
     },
